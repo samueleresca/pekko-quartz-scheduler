@@ -24,7 +24,7 @@ libraryDependencies ++= Seq(
   "org.apache.pekko" %% "pekko-actor-testkit-typed" % PekkoVersion % Test,
   "org.specs2"        %% "specs2-core"              % "4.15.0" % Test,
   "org.specs2"        %% "specs2-junit"             % "4.15.0" % Test,
-  "junit"              % "junit"                    % "4.13.1"   % Test,
+  "junit"              % "junit"                    % "4.13.2"   % Test,
   "org.slf4j"          % "slf4j-api"                % "1.7.21" % Test,
   "org.slf4j"          % "slf4j-jcl"                % "1.7.21" % Test,
   "org.scalatest"     %% "scalatest"                % "3.2.12" % Test
