@@ -8,7 +8,7 @@ version := "1.0.1-pekko-1.0.x"
 
 val Scala212Version = "2.12.13"
 val Scala213Version = "2.13.11"
-val Scala3Version = "3.1.3"
+val Scala3Version = "3.3.0"
 val PekkoVersion = "1.0.1"
 
 ThisBuild / scalaVersion := Scala213Version
@@ -22,11 +22,11 @@ libraryDependencies ++= Seq(
     exclude ("com.zaxxer", "HikariCP-java7"),
   "org.apache.pekko" %% "pekko-testkit"             % PekkoVersion % Test,
   "org.apache.pekko" %% "pekko-actor-testkit-typed" % PekkoVersion % Test,
-  "org.specs2"        %% "specs2-core"              % "4.15.0" % Test,
-  "org.specs2"        %% "specs2-junit"             % "4.15.0" % Test,
+  "org.specs2"        %% "specs2-core"              % "4.20.2" % Test,
+  "org.specs2"        %% "specs2-junit"             % "4.20.2" % Test,
   "junit"              % "junit"                    % "4.13.1"   % Test,
-  "org.slf4j"          % "slf4j-api"                % "1.7.21" % Test,
-  "org.slf4j"          % "slf4j-jcl"                % "1.7.21" % Test,
+  "org.slf4j"          % "slf4j-api"                % "1.7.36" % Test,
+  "org.slf4j"          % "slf4j-jcl"                % "1.7.36" % Test,
   "org.scalatest"     %% "scalatest"                % "3.2.12" % Test
 )
 
