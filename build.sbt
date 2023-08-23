@@ -6,7 +6,7 @@ organization := "io.github.samueleresca"
 
 version := "1.0.1-pekko-1.0.x"
 
-val Scala212Version = "2.12.13"
+val Scala212Version = "2.12.18"
 val Scala213Version = "2.13.11"
 val Scala3Version = "3.3.0"
 val PekkoVersion = "1.0.1"
@@ -27,7 +27,7 @@ libraryDependencies ++= Seq(
   "junit"              % "junit"                    % "4.13.1"   % Test,
   "org.slf4j"          % "slf4j-api"                % "1.7.36" % Test,
   "org.slf4j"          % "slf4j-jcl"                % "1.7.36" % Test,
-  "org.scalatest"     %% "scalatest"                % "3.2.12" % Test
+  "org.scalatest"     %% "scalatest"                % "3.2.16" % Test
 )
 
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
