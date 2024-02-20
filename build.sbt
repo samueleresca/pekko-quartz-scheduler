@@ -27,7 +27,7 @@ libraryDependencies ++= Seq(
   "junit"              % "junit"                    % "4.13.2"   % Test,
   "org.slf4j"          % "slf4j-api"                % "2.0.11" % Test,
   "org.slf4j"          % "slf4j-jcl"                % "1.7.36" % Test,
-  "org.scalatest"     %% "scalatest"                % "3.2.17" % Test
+  "org.scalatest"     %% "scalatest"                % "3.2.18" % Test
 )
 
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
