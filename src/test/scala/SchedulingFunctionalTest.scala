@@ -1,12 +1,13 @@
 package org.apache.pekko.extension.quartz
 
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{ Config, ConfigFactory }
 
 object SchedulingFunctionalTest {
 
   val tickTolerance = 1000
 
-  lazy val sampleConfiguration: Config = { ConfigFactory.parseString("""
+  lazy val sampleConfiguration: Config = {
+    ConfigFactory.parseString("""
     pekko {
       event-handlers = ["org.apache.pekko.testkit.TestEventListener"]
       loglevel = "INFO"
