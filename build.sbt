@@ -16,34 +16,36 @@ ThisBuild / crossScalaVersions := Seq(Scala212Version, Scala213Version, Scala3Ve
 ThisBuild / scalacOptions ++= Seq("-language:postfixOps")
 
 libraryDependencies ++= Seq(
-  "org.apache.pekko"   %% "pekko-actor"       % PekkoVersion,
-  "org.apache.pekko"   %% "pekko-actor-typed" % PekkoVersion,
-  "org.quartz-scheduler" % "quartz"           % "2.3.2"
-    exclude ("com.zaxxer", "HikariCP-java7"),
+  "org.apache.pekko"     %% "pekko-actor"       % PekkoVersion,
+  "org.apache.pekko"     %% "pekko-actor-typed" % PekkoVersion,
+  ("org.quartz-scheduler" % "quartz"            % "2.3.2")
+    .exclude("com.zaxxer", "HikariCP-java7"),
   "org.apache.pekko" %% "pekko-testkit"             % PekkoVersion % Test,
   "org.apache.pekko" %% "pekko-actor-testkit-typed" % PekkoVersion % Test,
-  "org.specs2"        %% "specs2-core"              % "4.20.5" % Test,
-  "org.specs2"        %% "specs2-junit"             % "4.20.5" % Test,
-  "junit"              % "junit"                    % "4.13.2"   % Test,
-  "org.slf4j"          % "slf4j-api"                % "2.0.12" % Test,
-  "org.slf4j"          % "slf4j-jcl"                % "1.7.36" % Test,
-  "org.scalatest"     %% "scalatest"                % "3.2.18" % Test
+  "org.specs2"       %% "specs2-core"               % "4.20.5"     % Test,
+  "org.specs2"       %% "specs2-junit"              % "4.20.5"     % Test,
+  "junit"             % "junit"                     % "4.13.2"     % Test,
+  "org.slf4j"         % "slf4j-api"                 % "2.0.12"     % Test,
+  "org.slf4j"         % "slf4j-jcl"                 % "1.7.36"     % Test,
+  "org.scalatest"    %% "scalatest"                 % "3.2.18"     % Test
 )
 
-resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+resolvers += "Sonatype OSS Snapshots".at("https://oss.sonatype.org/content/repositories/snapshots")
 
 // Sonatype release settings
 pomIncludeRepository := { _ => false }
 sonatypeCredentialHost := "s01.oss.sonatype.org"
 publishTo := sonatypePublishToBundle.value
 sonatypeProjectHosting := Some(
-  GitHubHosting(user = "samueleresca", repository = "pekko-quartz-scheduler", email = "samuele.resca@gmail.com"))
-  // Metadata referrsing to licenses, website, and SCM (source code management)
-licenses:= Seq(
-  "APL2" -> url("https://www.apache.org/licenses/LICENSE-2.0.txt"))
+  GitHubHosting(user = "samueleresca", repository = "pekko-quartz-scheduler", email = "samuele.resca@gmail.com")
+)
+// Metadata referrsing to licenses, website, and SCM (source code management)
+licenses := Seq("APL2" -> url("https://www.apache.org/licenses/LICENSE-2.0.txt"))
 sonatypeProfileName := "io.github.samueleresca"
 publishMavenStyle := true
 scmInfo := Some(
   ScmInfo(
     url("https://github.com/samueleresca/pekko-quartz-scheduler"),
-    "scm:git@github.com:samueleresca/pekko-quartz-scheduler.git"))
+    "scm:git@github.com:samueleresca/pekko-quartz-scheduler.git"
+  )
+)

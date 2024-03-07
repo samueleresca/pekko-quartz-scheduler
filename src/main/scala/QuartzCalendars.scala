@@ -1,18 +1,17 @@
 package org.apache.pekko.extension.quartz
 
-import com.typesafe.config.{ConfigObject, ConfigException, Config}
+import com.typesafe.config.{ Config, ConfigException, ConfigObject }
 import java.util.TimeZone
 import scala.util.control.Exception._
-import org.quartz.{CronExpression, Calendar}
+import org.quartz.{ Calendar, CronExpression }
 import org.quartz.impl.calendar._
 
 import scala.collection.JavaConverters._
-import java.text.{ParseException, SimpleDateFormat}
+import java.text.{ ParseException, SimpleDateFormat }
 import collection.immutable
 
 /**
- * Utility classes around the creation and configuration of Quartz Calendars.
- * All dates must be ISO-8601 compliant.
+ * Utility classes around the creation and configuration of Quartz Calendars. All dates must be ISO-8601 compliant.
  */
 object QuartzCalendars {
   // TODO - Support a default / "Base" calendar.
@@ -51,7 +50,6 @@ object QuartzCalendars {
   // !! The time range starting time must be before the time range ending time.
   //    Note this means that a time range may not cross daily boundaries (10PM - 2AM) !!
 
-
   /* monthly
    *  excludes a set of days of the month.
    */
@@ -75,14 +73,16 @@ object QuartzCalendars {
   val catchWrongType = catching(classOf[ConfigException.WrongType])
   val catchParseErr = catching(classOf[ParseException])
 
-  def apply(config: Config, defaultTimezone: TimeZone): immutable.Map[String, Calendar] = catchMissing opt {
-    /** the extra toMap call is because the asScala gives us a mutable map... */
-    config.getConfig("calendars").root.asScala.toMap.flatMap {
-      case (key, value: ConfigObject) => Some(key -> parseCalendar(key, value.toConfig, defaultTimezone))
-      case _ => None
-    }
-  } getOrElse immutable.Map.empty[String, Calendar]
+  def apply(config: Config, defaultTimezone: TimeZone): immutable.Map[String, Calendar] = catchMissing
+    .opt {
 
+      /** the extra toMap call is because the asScala gives us a mutable map... */
+      config.getConfig("calendars").root.asScala.toMap.flatMap {
+        case (key, value: ConfigObject) => Some(key -> parseCalendar(key, value.toConfig, defaultTimezone))
+        case _                          => None
+      }
+    }
+    .getOrElse(immutable.Map.empty[String, Calendar])
 
   def parseFmt(raw: String, fmt: SimpleDateFormat)(tz: TimeZone): java.util.Calendar = {
     val c = java.util.Calendar.getInstance(tz)
@@ -93,18 +93,27 @@ object QuartzCalendars {
   def parseAnnualCalendar(name: String, config: Config)(tz: TimeZone): AnnualCalendar = {
     val dateFmt = new SimpleDateFormat("MM-dd")
     dateFmt.setTimeZone(tz)
-    val excludeDates = catchMissing or catchWrongType either { config.getStringList("excludeDates") } match {
+    val excludeDates = catchMissing.or(catchWrongType).either { config.getStringList("excludeDates") } match {
       case Left(t) =>
-        throw new IllegalArgumentException("Invalid or Missing Configuration entry 'excludeDates' for Annual calendar '%s'. You must provide a list of ISO-8601 compliant dates ('YYYY-MM-DD').".format(name), t)
-      case Right(dates) => dates.asScala.map { d =>
-        catchParseErr either {
-          parseFmt(d, dateFmt)(tz)
-        } match {
-          case Left(t) =>
-            throw new IllegalArgumentException("Invalid date '%s' in Annual Calendar '%s' - 'excludeDates'. You must provide an ISO-8601 compliant date ('YYYY-MM-DD').".format(d, name), t)
-          case Right(dt) => dt
+        throw new IllegalArgumentException(
+          "Invalid or Missing Configuration entry 'excludeDates' for Annual calendar '%s'. You must provide a list of ISO-8601 compliant dates ('YYYY-MM-DD')."
+            .format(name),
+          t
+        )
+      case Right(dates) =>
+        dates.asScala.map { d =>
+          catchParseErr.either {
+            parseFmt(d, dateFmt)(tz)
+          } match {
+            case Left(t) =>
+              throw new IllegalArgumentException(
+                "Invalid date '%s' in Annual Calendar '%s' - 'excludeDates'. You must provide an ISO-8601 compliant date ('YYYY-MM-DD')."
+                  .format(d, name),
+                t
+              )
+            case Right(dt) => dt
+          }
         }
-      }
     }
     val cal = new AnnualCalendar()
     cal.setDaysExcluded(new java.util.ArrayList(excludeDates.asJava))
@@ -114,29 +123,41 @@ object QuartzCalendars {
   def parseHolidayCalendar(name: String, config: Config)(tz: TimeZone): HolidayCalendar = {
     val dateFmt = new SimpleDateFormat("yyyy-MM-dd")
     dateFmt.setTimeZone(tz)
-    val excludeDates = catchMissing or catchWrongType either { config.getStringList("excludeDates") } match {
+    val excludeDates = catchMissing.or(catchWrongType).either { config.getStringList("excludeDates") } match {
       case Left(t) =>
-        throw new IllegalArgumentException("Invalid or Missing Configuration entry 'excludeDates' for Holiday Calendar '%s'. You must provide a list of ISO-8601 compliant dates ('YYYY-MM-DD').".format(name), t)
-      case Right(dates) => dates.asScala.map { d =>
-        catchParseErr either {
-          parseFmt(d, dateFmt)(tz).getTime
-        } match {
-          case Left(t) =>
-            throw new IllegalArgumentException("Invalid date '%s' in Holiday Calendar '%s' - 'excludeDates'. You must provide an ISO-8601 compliant date ('YYYY-MM-DD').".format(d, name), t)
-          case Right(dt) => dt
+        throw new IllegalArgumentException(
+          "Invalid or Missing Configuration entry 'excludeDates' for Holiday Calendar '%s'. You must provide a list of ISO-8601 compliant dates ('YYYY-MM-DD')."
+            .format(name),
+          t
+        )
+      case Right(dates) =>
+        dates.asScala.map { d =>
+          catchParseErr.either {
+            parseFmt(d, dateFmt)(tz).getTime
+          } match {
+            case Left(t) =>
+              throw new IllegalArgumentException(
+                "Invalid date '%s' in Holiday Calendar '%s' - 'excludeDates'. You must provide an ISO-8601 compliant date ('YYYY-MM-DD')."
+                  .format(d, name),
+                t
+              )
+            case Right(dt) => dt
+          }
         }
-      }
     }
     val cal = new HolidayCalendar()
-    excludeDates.foreach {  cal.addExcludedDate }
+    excludeDates.foreach { cal.addExcludedDate }
     cal
   }
 
-
   def parseDailyCalendar(name: String, config: Config): DailyCalendar = {
-    def parseTimeEntry(entry: String) = catchMissing or catchWrongType either { config.getString(entry) } match {
+    def parseTimeEntry(entry: String) = catchMissing.or(catchWrongType).either { config.getString(entry) } match {
       case Left(t) =>
-        throw new IllegalArgumentException("Invalid or Missing Configuration entry '%s' for Daily Calendar '%s'. You must provide a time in the format 'HH:MM[:SS[:mmm]]'".format(entry, name), t)
+        throw new IllegalArgumentException(
+          "Invalid or Missing Configuration entry '%s' for Daily Calendar '%s'. You must provide a time in the format 'HH:MM[:SS[:mmm]]'"
+            .format(entry, name),
+          t
+        )
       case Right(rawTime) =>
         rawTime
     }
@@ -148,25 +169,33 @@ object QuartzCalendars {
     new DailyCalendar(startTime, endTime)
   }
 
-
   def parseWeeklyCalendar(name: String, config: Config): WeeklyCalendar = {
-    val excludeDays = catchMissing or catchWrongType either { config.getIntList("excludeDays") } match {
+    val excludeDays = catchMissing.or(catchWrongType).either { config.getIntList("excludeDays") } match {
       case Left(t) =>
-        throw new IllegalArgumentException("Invalid or Missing Configuration entry 'excludeDays' for Weekly Calendar '%s'. You must provide a list of Integers between 1 and 7.".format(name), t)
+        throw new IllegalArgumentException(
+          "Invalid or Missing Configuration entry 'excludeDays' for Weekly Calendar '%s'. You must provide a list of Integers between 1 and 7."
+            .format(name),
+          t
+        )
       case Right(days) =>
         days.asScala
     }
 
-    val excludeWeekends = catchMissing opt { config.getBoolean("excludeWeekends") } getOrElse true
+    val excludeWeekends = catchMissing.opt { config.getBoolean("excludeWeekends") }.getOrElse(true)
 
-    require(excludeDays.forall( d => d <= 7 && d >= 1),
-            "Weekly Calendar '%s' - 'excludeDays' must consist of a list of Integers between 1 and 7".format(name))
+    require(
+      excludeDays.forall(d => d <= 7 && d >= 1),
+      "Weekly Calendar '%s' - 'excludeDays' must consist of a list of Integers between 1 and 7".format(name)
+    )
 
     val cal = new WeeklyCalendar
     excludeDays.foreach { cal.setDayExcluded(_, true) }
     if (!excludeWeekends) {
       if (excludeDays.contains(7) || excludeDays.contains(1))
-        throw new IllegalArgumentException("Weekly Calendar '%s' - Cannot set 'excludeWeekends' to false when you have explicitly excluded Saturday (7) or Sunday (1)".format(name))
+        throw new IllegalArgumentException(
+          "Weekly Calendar '%s' - Cannot set 'excludeWeekends' to false when you have explicitly excluded Saturday (7) or Sunday (1)"
+            .format(name)
+        )
       else {
         cal.setDayExcluded(1, false)
         cal.setDayExcluded(7, false)
@@ -176,28 +205,42 @@ object QuartzCalendars {
   }
 
   def parseMonthlyCalendar(name: String, config: Config): MonthlyCalendar = {
-    val excludeDays = catchMissing or catchWrongType either { config.getIntList("excludeDays") } match {
+    val excludeDays = catchMissing.or(catchWrongType).either { config.getIntList("excludeDays") } match {
       case Left(t) =>
-        throw new IllegalArgumentException("Invalid or Missing Configuration entry 'excludeDays' for Monthly Calendar '%s'. You must provide a list of Integers between 1 and 31.".format(name), t)
+        throw new IllegalArgumentException(
+          "Invalid or Missing Configuration entry 'excludeDays' for Monthly Calendar '%s'. You must provide a list of Integers between 1 and 31."
+            .format(name),
+          t
+        )
       case Right(days) =>
         days.asScala
     }
-    require(excludeDays.forall( d => d <= 31 && d >= 1),
-      "Monthly Calendar '%s' - 'excludeDays' must consist of a list of Integers between 1 and 31".format(name))
+    require(
+      excludeDays.forall(d => d <= 31 && d >= 1),
+      "Monthly Calendar '%s' - 'excludeDays' must consist of a list of Integers between 1 and 31".format(name)
+    )
     val cal = new MonthlyCalendar
-    excludeDays.foreach {  cal.setDayExcluded(_, true) }
+    excludeDays.foreach { cal.setDayExcluded(_, true) }
     cal
   }
 
   def parseCronCalendar(name: String, config: Config): CronCalendar = {
-    val exclude = catchMissing or catchWrongType either { config.getString("excludeExpression") } match {
+    val exclude = catchMissing.or(catchWrongType).either { config.getString("excludeExpression") } match {
       case Left(t) =>
-        throw new IllegalArgumentException("Invalid or Missing Configuration entry 'excludeExpression' for Cron Calendar '%s'. You must provide a valid Quartz CronExpression.".format(name), t)
-      case Right(expr) => catchParseErr either CronExpression.validateExpression(expr) match {
-        case Left(t) =>
-          throw new IllegalArgumentException("Invalid 'excludeExpression' for Cron Calendar '%s'. Failed to validate CronExpression.".format(name), t)
-        case Right(_) => expr
-      }
+        throw new IllegalArgumentException(
+          "Invalid or Missing Configuration entry 'excludeExpression' for Cron Calendar '%s'. You must provide a valid Quartz CronExpression."
+            .format(name),
+          t
+        )
+      case Right(expr) =>
+        catchParseErr.either(CronExpression.validateExpression(expr)) match {
+          case Left(t) =>
+            throw new IllegalArgumentException(
+              "Invalid 'excludeExpression' for Cron Calendar '%s'. Failed to validate CronExpression.".format(name),
+              t
+            )
+          case Right(_) => expr
+        }
     }
     val cal = new CronCalendar(exclude)
     cal
@@ -205,29 +248,36 @@ object QuartzCalendars {
 
   def parseCalendar(name: String, config: Config, defaultTimezone: TimeZone): Calendar = {
     // parse common attributes
-    val timezone = catchMissing opt {
-      TimeZone.getTimeZone(config.getString("timezone")) // todo - this is bad, as Java silently swaps the timezone if it doesn't match...
-    } getOrElse defaultTimezone
+    val timezone = catchMissing
+      .opt {
+        TimeZone.getTimeZone(
+          config.getString("timezone")
+        ) // todo - this is bad, as Java silently swaps the timezone if it doesn't match...
+      }
+      .getOrElse(defaultTimezone)
 
-    val description = catchMissing opt {
+    val description = catchMissing.opt {
       config.getString("description")
     }
 
     /// todo - make this whole thing a pattern extractor?
-    catchMissing either config.getString("type") match {
+    catchMissing.either(config.getString("type")) match {
       case Left(_) => throw new IllegalArgumentException("Calendar Type must be defined for " + name)
       case Right(typ) =>
         val cal = typ.toUpperCase match {
-          case "ANNUAL" => parseAnnualCalendar(name, config)(timezone)
+          case "ANNUAL"  => parseAnnualCalendar(name, config)(timezone)
           case "HOLIDAY" => parseHolidayCalendar(name, config)(timezone)
-          case "DAILY" => parseDailyCalendar(name, config)
+          case "DAILY"   => parseDailyCalendar(name, config)
           case "MONTHLY" => parseMonthlyCalendar(name, config)
-          case "WEEKLY" => parseWeeklyCalendar(name, config)
-          case "CRON" => parseCronCalendar(name, config)
+          case "WEEKLY"  => parseWeeklyCalendar(name, config)
+          case "CRON"    => parseCronCalendar(name, config)
           case other =>
-              throw new IllegalArgumentException("Unknown Quartz Calendar type '%s' for calendar '%s'. Valid types are Annual, Holiday, Daily, Monthly, Weekly, and Cron.".format(other, name))
+            throw new IllegalArgumentException(
+              "Unknown Quartz Calendar type '%s' for calendar '%s'. Valid types are Annual, Holiday, Daily, Monthly, Weekly, and Cron."
+                .format(other, name)
+            )
         }
-        description.foreach{cal.setDescription}
+        description.foreach { cal.setDescription }
         cal.setTimeZone(timezone)
         cal
     }

@@ -6,7 +6,7 @@ import org.junit.runner.RunWith
 import org.specs2.matcher.ThrownExpectations
 import com.typesafe.config.ConfigFactory
 import org.apache.pekko.actor.ActorSystem
-import java.util.{Calendar, GregorianCalendar, Date, TimeZone}
+import java.util.{ Calendar, Date, GregorianCalendar, TimeZone }
 import org.quartz.impl.calendar._
 import org.quartz.impl.triggers.CronTriggerImpl
 import org.quartz.TriggerUtils
@@ -43,7 +43,7 @@ class QuartzScheduleSpec extends Specification with ThrownExpectations {
     val numExpectedFirings = (endHour - startHour) * 60 /* 60 minutes in an hour */ * 6 /* 6 ticks per minute */
     val firings = TriggerUtils.computeFireTimesBetween(t, null, getDate(startHour, 0), getDate(endHour, 0)).asScala
 
-    firings must have size(numExpectedFirings)
+    firings must have size numExpectedFirings
   }
 
   def parseCronScheduleCalendars = {
@@ -68,9 +68,10 @@ class QuartzScheduleSpec extends Specification with ThrownExpectations {
     // we don't follow the startHour and endHour because of business hours..
     // the cron exemption rule (taken from quartz docs) actually lets jobs run from 0800 - 1759 (doh)
     val numExpectedFirings = (18 - 8) * 60 /* 60 minutes in an hour */ * 2 /* 2 ticks per minute */
-    val firings = TriggerUtils.computeFireTimesBetween(t, bizHoursCal, getDate(startHour, 0), getDate(endHour, 0)).asScala
+    val firings =
+      TriggerUtils.computeFireTimesBetween(t, bizHoursCal, getDate(startHour, 0), getDate(endHour, 0)).asScala
 
-    firings must have size(numExpectedFirings)
+    firings must have size numExpectedFirings
   }
 
   def getDate(hour: Int, minute: Int)(implicit tz: TimeZone = TimeZone.getTimeZone("UTC")) = {
@@ -84,8 +85,7 @@ class QuartzScheduleSpec extends Specification with ThrownExpectations {
   lazy val schedules = QuartzSchedules(sampleConfiguration, TimeZone.getTimeZone("UTC"))
 
   lazy val sampleCalendarConfig = {
-    ConfigFactory.parseString(
-      """
+    ConfigFactory.parseString("""
       calendars {
         CronOnlyBusinessHours {
           type = Cron

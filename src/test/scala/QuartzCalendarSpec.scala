@@ -7,7 +7,7 @@ import org.specs2.Specification
 import org.junit.runner.RunWith
 import org.specs2.matcher.ThrownExpectations
 import com.typesafe.config.ConfigFactory
-import java.util.{Calendar, Date, TimeZone}
+import java.util.{ Calendar, Date, TimeZone }
 
 import scala.collection.JavaConverters._
 import org.quartz.impl.calendar._
@@ -35,8 +35,8 @@ class QuartzCalendarSpec extends Specification with ThrownExpectations {
     """
 
   def parseCalendarList = {
-    //TODO - more robust check
-    calendars must have size(7)
+    // TODO - more robust check
+    calendars must have size 7
   }
 
   def parseAnnual = {
@@ -46,13 +46,13 @@ class QuartzCalendarSpec extends Specification with ThrownExpectations {
 
     import Calendar._
 
-    cal.isDayExcluded(getCalendar(JANUARY,   1, 1995)) must beTrue
-    cal.isDayExcluded(getCalendar(JANUARY,   1, 1975)) must beTrue
-    cal.isDayExcluded(getCalendar(JANUARY,   1, 2075)) must beTrue
+    cal.isDayExcluded(getCalendar(JANUARY, 1, 1995)) must beTrue
+    cal.isDayExcluded(getCalendar(JANUARY, 1, 1975)) must beTrue
+    cal.isDayExcluded(getCalendar(JANUARY, 1, 2075)) must beTrue
 
-    cal.isDayExcluded(getCalendar(JANUARY,   2, 1995)) must beFalse
-    cal.isDayExcluded(getCalendar(JANUARY,   2, 1975)) must beFalse
-    cal.isDayExcluded(getCalendar(JANUARY,   2, 2075)) must beFalse
+    cal.isDayExcluded(getCalendar(JANUARY, 2, 1995)) must beFalse
+    cal.isDayExcluded(getCalendar(JANUARY, 2, 1975)) must beFalse
+    cal.isDayExcluded(getCalendar(JANUARY, 2, 2075)) must beFalse
 
     cal.isDayExcluded(getCalendar(DECEMBER, 25, 1995)) must beTrue
     cal.isDayExcluded(getCalendar(DECEMBER, 25, 1975)) must beTrue
@@ -67,13 +67,9 @@ class QuartzCalendarSpec extends Specification with ThrownExpectations {
     calendars must haveKey("Easter")
     calendars("Easter") must haveClass[HolidayCalendar]
 
-    calendars("Easter").asInstanceOf[HolidayCalendar].getExcludedDates.asScala must containAllOf(List(
-      getDate(2013, 3, 31),
-      getDate(2014, 4, 20),
-      getDate(2015, 4,  5),
-      getDate(2016, 3, 27),
-      getDate(2017, 4, 16)
-    ))
+    calendars("Easter").asInstanceOf[HolidayCalendar].getExcludedDates.asScala must containAllOf(
+      List(getDate(2013, 3, 31), getDate(2014, 4, 20), getDate(2015, 4, 5), getDate(2016, 3, 27), getDate(2017, 4, 16))
+    )
   }
 
   def parseDaily = {
@@ -87,10 +83,10 @@ class QuartzCalendarSpec extends Specification with ThrownExpectations {
     cal.toString must contain("'03:00:00:000 - 05:00:00:000', inverted: false")
   }
 
-  def _monthDayRange(days: List[Int]) = (1 to 31) map { d => (days contains d) }
+  def _monthDayRange(days: List[Int]) = (1 to 31).map { d => days contains d }
 
   // for some inexplicable reason WeeklyCalendar (not tested by quartz) includes day 0 also?!?!
-  def _weekDayRange(days: List[Int]) = (0 to 7) map { d => (days contains d) }
+  def _weekDayRange(days: List[Int]) = (0 to 7).map { d => days contains d }
 
   def parseMonthlyOneDay = {
     calendars must haveKey("FirstOfMonth")
@@ -181,7 +177,6 @@ class QuartzCalendarSpec extends Specification with ThrownExpectations {
   def getDate(year: Int, month: Int, day: Int): Date = {
     Date.from(LocalDate.of(year, month, day).atStartOfDay(java.time.ZoneId.systemDefault).toInstant)
   }
-
 
   lazy val calendars = QuartzCalendars(sampleConfiguration, TimeZone.getDefault)
 
