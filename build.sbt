@@ -49,3 +49,18 @@ scmInfo := Some(
     "scm:git@github.com:samueleresca/pekko-quartz-scheduler.git"
   )
 )
+
+ThisBuild / githubWorkflowBuild := Seq(WorkflowStep.Sbt(List("test")))
+
+ThisBuild / githubWorkflowTargetTags ++= Seq("*.*.*")
+ThisBuild / githubWorkflowPublishTargetBranches := Seq.empty
+ThisBuild / githubWorkflowPublish := Seq.empty
+
+ThisBuild / githubWorkflowOSes := Seq("ubuntu-latest", "macos-latest")
+
+ThisBuild / githubWorkflowJavaVersions := Seq(
+  JavaSpec.temurin("8"),
+  JavaSpec.temurin("11"),
+  JavaSpec.temurin("17"),
+  JavaSpec.temurin("21")
+)
