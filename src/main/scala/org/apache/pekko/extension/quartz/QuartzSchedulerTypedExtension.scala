@@ -82,9 +82,7 @@ class QuartzSchedulerTypedExtension(private val untyped: QuartzSchedulerExtensio
       cronExpression: String,
       calendar: Option[String] = None,
       timezone: TimeZone = untyped.defaultTimezone
-  ): Date = {
-    rescheduleTypedJob(name, receiver, msg, description, cronExpression, calendar, timezone)
-  }
+  ): Date = rescheduleTypedJob(name, receiver, msg, description, cronExpression, calendar, timezone)
 
   /**
    * Reschedule a job

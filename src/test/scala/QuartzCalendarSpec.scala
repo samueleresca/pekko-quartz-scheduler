@@ -174,9 +174,8 @@ class QuartzCalendarSpec extends Specification with ThrownExpectations {
     _day
   }
 
-  def getDate(year: Int, month: Int, day: Int): Date = {
+  def getDate(year: Int, month: Int, day: Int): Date =
     Date.from(LocalDate.of(year, month, day).atStartOfDay(java.time.ZoneId.systemDefault).toInstant)
-  }
 
   lazy val calendars = QuartzCalendars(sampleConfiguration, TimeZone.getDefault)
 

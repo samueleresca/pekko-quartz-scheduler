@@ -1,6 +1,6 @@
 package org.apache.pekko.extension.quartz
 
-import org.apache.pekko.actor.{ typed, ActorRef, ActorSelection }
+import org.apache.pekko.actor.{ typed, ActorRef }
 import org.apache.pekko.event.{ EventStream, Logging, LoggingBus }
 import org.quartz.{ Job, JobDataMap, JobExecutionContext, JobExecutionException }
 

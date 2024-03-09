@@ -51,13 +51,11 @@ object QuartzSchedules {
       }
       .getOrElse(defaultTimezone)
 
-    val calendar = catchMissing
-      .opt {
-        Option(
-          config.getString("calendar")
-        ) // TODO - does Quartz validate for us that a calendar referenced is valid/invalid?
-      }
-      .getOrElse(None)
+    val calendar = catchMissing.opt {
+      Option(
+        config.getString("calendar")
+      ) // TODO - does Quartz validate for us that a calendar referenced is valid/invalid?
+    }.flatten
 
     val desc = catchMissing.opt {
       config.getString("description")

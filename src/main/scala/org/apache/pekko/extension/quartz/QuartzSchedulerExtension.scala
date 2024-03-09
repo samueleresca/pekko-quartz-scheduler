@@ -98,12 +98,11 @@ class QuartzSchedulerExtension(system: ActorSystem) extends Extension {
   /**
    * Returns the next Date a schedule will be fired
    */
-  def nextTrigger(name: String): Option[Date] = {
+  def nextTrigger(name: String): Option[Date] =
     for {
       jobKey <- runningJobs.get(name)
       trigger <- scheduler.getTriggersOfJob(jobKey).asScala.headOption
     } yield trigger.getNextFireTime
-  }
 
   /**
    * Suspends (pauses) all jobs in the scheduler
@@ -119,9 +118,8 @@ class QuartzSchedulerExtension(system: ActorSystem) extends Extension {
    * @param waitForJobsToComplete
    *   wait for jobs to complete? default to false
    */
-  def shutdown(waitForJobsToComplete: Boolean = false): Unit = {
+  def shutdown(waitForJobsToComplete: Boolean = false): Unit =
     scheduler.shutdown(waitForJobsToComplete)
-  }
 
   /**
    * Attempts to suspend (pause) the given job
@@ -131,7 +129,7 @@ class QuartzSchedulerExtension(system: ActorSystem) extends Extension {
    * @return
    *   Success or Failure in a Boolean
    */
-  def suspendJob(name: String): Boolean = {
+  def suspendJob(name: String): Boolean =
     runningJobs.get(name) match {
       case Some(job) =>
         log.info("Suspending Quartz Job '{}'", name)
@@ -140,9 +138,8 @@ class QuartzSchedulerExtension(system: ActorSystem) extends Extension {
       case None =>
         log.warning("No running Job named '{}' found: Cannot suspend", name)
         false
+      // TODO - Exception checking?
     }
-    // TODO - Exception checking?
-  }
 
   /**
    * Attempts to resume (un-pause) the given job
@@ -152,7 +149,7 @@ class QuartzSchedulerExtension(system: ActorSystem) extends Extension {
    * @return
    *   Success or Failure in a Boolean
    */
-  def resumeJob(name: String): Boolean = {
+  def resumeJob(name: String): Boolean =
     runningJobs.get(name) match {
       case Some(job) =>
         log.info("Resuming Quartz Job '{}'", name)
@@ -161,9 +158,8 @@ class QuartzSchedulerExtension(system: ActorSystem) extends Extension {
       case None =>
         log.warning("No running Job named '{}' found: Cannot unpause", name)
         false
+      // TODO - Exception checking?
     }
-    // TODO - Exception checking?
-  }
 
   /**
    * Unpauses all jobs in the scheduler
@@ -181,7 +177,7 @@ class QuartzSchedulerExtension(system: ActorSystem) extends Extension {
    * @return
    *   Success or Failure in a Boolean
    */
-  def cancelJob(name: String): Boolean = {
+  def cancelJob(name: String): Boolean =
     runningJobs.get(name) match {
       case Some(job) =>
         log.info("Cancelling Quartz Job '{}'", name)
@@ -191,9 +187,8 @@ class QuartzSchedulerExtension(system: ActorSystem) extends Extension {
       case None =>
         log.warning("No running Job named '{}' found: Cannot cancel", name)
         false
+      // TODO - Exception checking?
     }
-    // TODO - Exception checking?
-  }
 
   /**
    * Creates job, associated triggers and corresponding schedule at once.
@@ -258,9 +253,8 @@ class QuartzSchedulerExtension(system: ActorSystem) extends Extension {
       cronExpression: String,
       calendar: Option[String] = None,
       timezone: TimeZone = defaultTimezone
-  ): Date = {
+  ): Date =
     rescheduleJob(name, receiver, msg, description, cronExpression, calendar, timezone)
-  }
 
   /**
    * Deletes job, associated triggers and corresponding schedule at once.
@@ -299,7 +293,8 @@ class QuartzSchedulerExtension(system: ActorSystem) extends Extension {
    */
   def unscheduleJob(name: String): Boolean = {
     val isJobCancelled = cancelJob(name)
-    if (isJobCancelled) { removeSchedule(name) }
+    if (isJobCancelled)
+      removeSchedule(name)
     isJobCancelled
   }
 
