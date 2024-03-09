@@ -30,8 +30,6 @@ libraryDependencies ++= Seq(
   "org.scalatest"    %% "scalatest"                 % "3.2.18"     % Test
 )
 
-resolvers += "Sonatype OSS Snapshots".at("https://oss.sonatype.org/content/repositories/snapshots")
-
 // Sonatype release settings
 pomIncludeRepository := { _ => false }
 sonatypeCredentialHost := "s01.oss.sonatype.org"
