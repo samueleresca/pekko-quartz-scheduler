@@ -93,7 +93,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
       val receiver = _system.actorOf(Props(new ScheduleTestReceiver))
       val probe = TestProbe()
       receiver ! NewProbe(probe.ref)
-      val jobDt = QuartzSchedulerExtension(_system).schedule("cronEvery10Seconds", receiver, Tick)
+      QuartzSchedulerExtension(_system).schedule("cronEvery10Seconds", receiver, Tick)
 
       /* This is a somewhat questionable test as the timing between components may not match the tick off. */
       val receipt = probe.receiveWhile(Duration(1, MINUTES), Duration(15, SECONDS), 5) { case Tock =>
@@ -110,7 +110,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
       val probe = TestProbe()
       receiver ! NewProbe(probe.ref)
       _system.eventStream.subscribe(receiver, Tick.getClass)
-      val jobDt = QuartzSchedulerExtension(_system).schedule("cronEvery12Seconds", _system.eventStream, Tick)
+      QuartzSchedulerExtension(_system).schedule("cronEvery12Seconds", _system.eventStream, Tick)
 
       /* This is a somewhat questionable test as the timing between components may not match the tick off. */
       val receipt = probe.receiveWhile(Duration(1, MINUTES), Duration(15, SECONDS), 5) { case Tock =>
@@ -124,7 +124,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
 
     "Delayed Setup & Execute a Cron Job" in {
       val now = Calendar.getInstance()
-      val t = now.getTimeInMillis()
+      val t = now.getTimeInMillis
       val after65s = new Date(t + (35 * 1000))
 
       val receiver = _system.actorOf(Props(new ScheduleTestReceiver))
@@ -161,8 +161,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
       val receiver = _system.actorOf(Props(new ScheduleTestReceiver))
       val probe = TestProbe()
       receiver ! NewProbe(probe.ref)
-      val jobDt =
-        QuartzSchedulerExtension(_system).schedule("cronEvery5Seconds", _system.actorSelection(receiver.path), Tick)
+      QuartzSchedulerExtension(_system).schedule("cronEvery5Seconds", _system.actorSelection(receiver.path), Tick)
 
       /* This is a somewhat questionable test as the timing between components may not match the tick off. */
       val receipt = probe.receiveWhile(Duration(1, MINUTES), Duration(15, SECONDS), 5) { case Tock =>
@@ -208,7 +207,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
   "The Quartz Scheduling Extension with Dynamic Create" must {
 
     "Throw exception if creating schedule that already exists" in {
-      val receiver = _system.actorOf(Props(new ScheduleTestReceiver))
+      system.actorOf(Props(new ScheduleTestReceiver))
 
       an[IllegalArgumentException] must be thrownBy {
         QuartzSchedulerExtension(_system).createSchedule("cronEvery10Seconds", None, "*/10 * * ? * *", None)
@@ -216,7 +215,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
     }
 
     "Throw exception if creating a schedule that has invalid cron expression" in {
-      val receiver = _system.actorOf(Props(new ScheduleTestReceiver))
+      _system.actorOf(Props(new ScheduleTestReceiver))
 
       an[IllegalArgumentException] must be thrownBy {
         QuartzSchedulerExtension(_system).createSchedule("nonExistingCron", None, "*/10 x * ? * *", None)
@@ -234,7 +233,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
         "*/1 * * ? * *",
         None
       )
-      val jobDt = QuartzSchedulerExtension(_system).schedule("nonExistingCron", receiver, Tick)
+      QuartzSchedulerExtension(_system).schedule("nonExistingCron", receiver, Tick)
 
       /* This is a somewhat questionable test as the timing between components may not match the tick off. */
       val receipt = probe.receiveWhile(Duration(30, SECONDS), Duration(15, SECONDS), 5) { case Tock =>
@@ -274,12 +273,6 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
     }
 
     "Throw exception if creating a scheduled job with schedule that has invalid cron expression" in {
-
-      // Remark: Tests are not completely in isolation as using "nonExistingCron"
-      // schedule name here would fail because of use and definition in former:
-      // "Add new, schedulable schedule with valid inputs" test.
-      val nonExistingScheduleJobName = "nonExistingCron_2"
-
       val receiver = _system.actorOf(Props(new ScheduleTestReceiver))
 
       an[IllegalArgumentException] must be thrownBy {
@@ -299,7 +292,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
       val probe = TestProbe()
       receiver ! NewProbe(probe.ref)
 
-      val jobDt = QuartzSchedulerExtension(_system).createJobSchedule(
+      QuartzSchedulerExtension(_system).createJobSchedule(
         "nonExistingCron_2",
         receiver,
         Tick,
@@ -325,7 +318,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
       val probe = TestProbe()
       receiver ! NewProbe(probe.ref)
 
-      val jobDt = QuartzSchedulerExtension(_system).createJobSchedule(
+      QuartzSchedulerExtension(_system).createJobSchedule(
         toRescheduleJobName,
         receiver,
         Tick,
@@ -355,7 +348,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
       val probe = TestProbe()
       receiver ! NewProbe(probe.ref)
 
-      val jobDt = QuartzSchedulerExtension(_system).createJobSchedule(
+      QuartzSchedulerExtension(_system).createJobSchedule(
         toDeleteSheduleJobName,
         receiver,
         Tick,
@@ -379,9 +372,8 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
           val jobCalender = Calendar.getInstance()
           jobCalender.setTime(newJobDt)
           jobCalender.get(Calendar.SECOND) mustEqual 8
-        } else {
-          fail(s"deleteJobSchedule(${toDeleteSheduleJobName}) expected to return true returned false.")
-        }
+        } else
+          fail(s"deleteJobSchedule($toDeleteSheduleJobName) expected to return true returned false.")
       }
     }
 
@@ -397,9 +389,8 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
         // Deleting non existing scheduled job
         val success = QuartzSchedulerExtension(_system).deleteJobSchedule(nonExistingCronToBeDeleted)
         // must return false
-        if (success) {
-          fail(s"deleteJobSchedule(${nonExistingCronToBeDeleted}) expected to return false returned true.")
-        }
+        if (success)
+          fail(s"deleteJobSchedule($nonExistingCronToBeDeleted) expected to return false returned true.")
       }
     }
 
@@ -421,14 +412,14 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
       receiver ! NewProbe(probe.ref)
       val toBeDeletedAllJobName1 = "toBeDeletedAll_1"
       val toBeDeletedAllJobName2 = "toBeDeletedAll_2"
-      val jobDt1 = QuartzSchedulerExtension(_system).createJobSchedule(
+      QuartzSchedulerExtension(_system).createJobSchedule(
         toBeDeletedAllJobName1,
         receiver,
         Tick,
         Some("Creating new dynamic schedule for deleteAll test"),
         "*/7 * * ? * *"
       )
-      val jobDt2 = QuartzSchedulerExtension(_system).createJobSchedule(
+      QuartzSchedulerExtension(_system).createJobSchedule(
         toBeDeletedAllJobName2,
         receiver,
         Tick,
@@ -482,7 +473,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
         probe ! Tock
       case MessageWithFireTime(Tick, scheduledFireTime, previousFireTime, nextFireTime) =>
         log.info(
-          s"Got a Tick for scheduledFireTime=${scheduledFireTime} previousFireTime=${previousFireTime} nextFireTime=${nextFireTime}"
+          s"Got a Tick for scheduledFireTime=$scheduledFireTime previousFireTime=$previousFireTime nextFireTime=$nextFireTime"
         )
         probe ! TockWithFireTime(
           scheduledFireTime.getTime,

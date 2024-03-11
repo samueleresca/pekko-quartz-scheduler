@@ -203,7 +203,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
 
   "The Quartz Scheduling Extension with Dynamic Create" must {
     "Throw exception if creating schedule that already exists" in {
-      val receiver = testKit.spawn(ScheduleTestReceiver())
+      testKit.spawn(ScheduleTestReceiver())
 
       an[IllegalArgumentException] must be thrownBy {
         QuartzSchedulerTypedExtension(_system).createSchedule("cronEvery10Seconds", None, "*/10 * * ? * *", None)
@@ -211,7 +211,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
     }
 
     "Throw exception if creating a schedule that has invalid cron expression" in {
-      val receiver = testKit.spawn(ScheduleTestReceiver())
+      testKit.spawn(ScheduleTestReceiver())
 
       an[IllegalArgumentException] must be thrownBy {
         QuartzSchedulerTypedExtension(_system).createSchedule("nonExistingCron", None, "*/10 x * ? * *", None)
@@ -229,7 +229,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
         "*/1 * * ? * *",
         None
       )
-      val jobDt = QuartzSchedulerTypedExtension(_system).scheduleTyped("nonExistingCron", receiver, Tick)
+      QuartzSchedulerTypedExtension(_system).scheduleTyped("nonExistingCron", receiver, Tick)
 
       /* This is a somewhat questionable test as the timing between components may not match the tick off. */
       val receipt = probe.receiveMessages(5, Duration(30, SECONDS))
@@ -266,12 +266,6 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
     }
 
     "Throw exception if creating a scheduled job with schedule that has invalid cron expression" in {
-
-      // Remark: Tests are not completely in isolation as using "nonExistingCron"
-      // schedule name here would fail because of use and definition in former:
-      // "Add new, schedulable schedule with valid inputs" test.
-      val nonExistingScheduleJobName = "nonExistingCron_2"
-
       val receiver = testKit.spawn(ScheduleTestReceiver())
 
       an[IllegalArgumentException] must be thrownBy {
@@ -291,7 +285,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
       val probe = testKit.createTestProbe[AnyRef]()
       receiver ! NewProbe(probe.ref)
 
-      val jobDt = QuartzSchedulerTypedExtension(_system).createTypedJobSchedule(
+      QuartzSchedulerTypedExtension(_system).createTypedJobSchedule(
         "nonExistingCron_2",
         receiver,
         Tick,
@@ -315,7 +309,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
       val probe = testKit.createTestProbe[AnyRef]()
       receiver ! NewProbe(probe.ref)
 
-      val jobDt = QuartzSchedulerTypedExtension(_system).createTypedJobSchedule(
+      QuartzSchedulerTypedExtension(_system).createTypedJobSchedule(
         toRescheduleJobName,
         receiver,
         Tick,
@@ -345,7 +339,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
       val probe = testKit.createTestProbe[AnyRef]()
       receiver ! NewProbe(probe.ref)
 
-      val jobDt = QuartzSchedulerTypedExtension(_system).createTypedJobSchedule(
+      QuartzSchedulerTypedExtension(_system).createTypedJobSchedule(
         toDeleteSheduleJobName,
         receiver,
         Tick,
@@ -369,9 +363,8 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
           val jobCalender = Calendar.getInstance()
           jobCalender.setTime(newJobDt)
           jobCalender.get(Calendar.SECOND) mustEqual 8
-        } else {
-          fail(s"deleteJobSchedule(${toDeleteSheduleJobName}) expected to return true returned false.")
-        }
+        } else
+          fail(s"deleteJobSchedule($toDeleteSheduleJobName) expected to return true returned false.")
       }
     }
 
@@ -387,9 +380,8 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
         // Deleting non existing scheduled job
         val success = QuartzSchedulerTypedExtension(_system).deleteJobSchedule(nonExistingCronToBeDeleted)
         // must return false
-        if (success) {
-          fail(s"deleteJobSchedule(${nonExistingCronToBeDeleted}) expected to return false returned true.")
-        }
+        if (success)
+          fail(s"deleteJobSchedule($nonExistingCronToBeDeleted) expected to return false returned true.")
       }
     }
 
@@ -421,7 +413,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
 
       case MessageWithFireTime(Tick, scheduledFireTime, previousFireTime, nextFireTime) =>
         log.info(
-          s"Got a Tick for scheduledFireTime=${scheduledFireTime} previousFireTime=${previousFireTime} nextFireTime=${nextFireTime}"
+          s"Got a Tick for scheduledFireTime=$scheduledFireTime previousFireTime=$previousFireTime nextFireTime=$nextFireTime"
         )
         probe ! TockWithFireTime(
           scheduledFireTime.getTime,

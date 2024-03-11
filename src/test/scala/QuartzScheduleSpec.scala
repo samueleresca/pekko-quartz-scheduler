@@ -5,9 +5,7 @@ import org.specs2.Specification
 import org.junit.runner.RunWith
 import org.specs2.matcher.ThrownExpectations
 import com.typesafe.config.ConfigFactory
-import org.apache.pekko.actor.ActorSystem
-import java.util.{ Calendar, Date, GregorianCalendar, TimeZone }
-import org.quartz.impl.calendar._
+import java.util.{ Calendar, TimeZone }
 import org.quartz.impl.triggers.CronTriggerImpl
 import org.quartz.TriggerUtils
 import scala.collection.JavaConverters._
@@ -22,9 +20,8 @@ class QuartzScheduleSpec extends Specification with ThrownExpectations {
         Be able to parse out a cron schedule w/ calendars        $parseCronScheduleCalendars
     """
 
-  def parseScheduleList = {
+  def parseScheduleList =
     schedules must haveSize(2)
-  }
 
   def parseCronSchedule = {
     schedules must haveKey("cronEvery10Seconds")
