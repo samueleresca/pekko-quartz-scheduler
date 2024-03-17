@@ -131,7 +131,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
       val probe = testKit.createTestProbe[AnyRef]()
       receiver ! NewProbe(probe.ref)
       val extension = QuartzSchedulerTypedExtension(_system)
-      val jobDt = extension.scheduleTyped("cronEvery15Seconds", receiver, Tick, Some(after65s))
+      val jobDt = extension.scheduleTyped("cronEvery15SecondsTyped", receiver, Tick, Some(after65s))
 
       var receipt = Seq[AnyRef]()
       an[AssertionError] must be thrownBy {
@@ -160,10 +160,12 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
       val addSeconds = 15 - (seconds % 15)
       val secs = if (addSeconds > 0) addSeconds else 15
       scheduleCalender.add(Calendar.SECOND, secs)
-
+      val log = Logger.getLogger(getClass.getSimpleName)
       // Dates must be equal in seconds
+      log.info(s"jobCalender: $jobCalender.getTimeInMillis.toString")
+      log.info(s"scheduleCalender: $scheduleCalender.getTimeInMillis.toString")
       Math.abs(jobCalender.getTimeInMillis - scheduleCalender.getTimeInMillis) <= 1000L mustEqual true
-      extension.cancelJob("cronEvery15Seconds")
+      extension.cancelJob("cronEvery15SecondsTyped")
     }
   }
 
