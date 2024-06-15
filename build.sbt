@@ -1,5 +1,5 @@
-import xerial.sbt.Sonatype._
-import sbt.sbtpgp.Compat._
+import sbt.sbtpgp.Compat.*
+import xerial.sbt.Sonatype.*
 name := "pekko-quartz-scheduler"
 
 organization := "io.github.samueleresca"
@@ -54,7 +54,7 @@ ThisBuild / githubWorkflowTargetTags ++= Seq("*.*.*")
 ThisBuild / githubWorkflowPublishTargetBranches := Seq.empty
 ThisBuild / githubWorkflowPublish := Seq.empty
 
-ThisBuild / githubWorkflowOSes := Seq("ubuntu-latest", "macos-latest")
+ThisBuild / githubWorkflowOSes := Seq("ubuntu-latest", "macos-12")
 
 ThisBuild / githubWorkflowJavaVersions := Seq(
   JavaSpec.temurin("8"),

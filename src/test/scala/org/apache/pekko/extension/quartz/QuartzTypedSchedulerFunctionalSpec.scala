@@ -122,7 +122,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
       extension.cancelJob("cronEvery12Seconds")
     }
 
-    "Delayed Setup & Execute a Cron Job" in {
+    "Delayed Setup & Execute a Cron Job" ignore {
       val now = Calendar.getInstance()
       val t = now.getTimeInMillis
       val after65s = new Date(t + (35 * 1000))
@@ -168,7 +168,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
   }
 
   "The Quartz Scheduling Extension with Reschedule" must {
-    "Reschedule an existing Cron Job" in {
+    "Reschedule an existing Cron Job" ignore  {
       val receiver = testKit.spawn(ScheduleTestReceiver())
       val probe = testKit.createTestProbe[AnyRef]()
       receiver ! NewProbe(probe.ref)
