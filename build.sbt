@@ -1,5 +1,5 @@
-import xerial.sbt.Sonatype._
-import sbt.sbtpgp.Compat._
+import xerial.sbt.Sonatype.*
+
 name := "pekko-quartz-scheduler"
 
 organization := "io.github.samueleresca"
@@ -56,8 +56,16 @@ ThisBuild / githubWorkflowPublish := Seq.empty
 
 ThisBuild / githubWorkflowOSes := Seq("ubuntu-latest", "macos-latest")
 
+// sbt is not preinstalled in macos-latest
+ThisBuild / githubWorkflowBuildPreamble +=
+  WorkflowStep.Run(
+    List("brew install sbt"),
+    name = Some("Install missing sbt"),
+    cond = Some("matrix.os == 'macos-latest'")
+  )
+
 ThisBuild / githubWorkflowJavaVersions := Seq(
-  JavaSpec.temurin("8"),
+  JavaSpec.corretto("8"), // Use corretto because temurin doesn't provide a JDK 1.8 supporting Apple M1.
   JavaSpec.temurin("11"),
   JavaSpec.temurin("17"),
   JavaSpec.temurin("21")
