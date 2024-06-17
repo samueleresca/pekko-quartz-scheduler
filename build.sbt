@@ -7,9 +7,9 @@ organization := "io.github.samueleresca"
 version := "1.2.0-pekko-1.0.x"
 
 val Scala212Version = "2.12.19"
-val Scala213Version = "2.13.13"
-val Scala3Version = "3.3.3"
-val PekkoVersion = "1.0.2"
+val Scala213Version = "2.13.14"
+val Scala3Version = "3.4.1"
+val PekkoVersion = "1.0.3"
 
 ThisBuild / scalaVersion := Scala213Version
 ThisBuild / crossScalaVersions := Seq(Scala212Version, Scala213Version, Scala3Version)
@@ -22,10 +22,10 @@ libraryDependencies ++= Seq(
     .exclude("com.zaxxer", "HikariCP-java7"),
   "org.apache.pekko" %% "pekko-testkit"             % PekkoVersion % Test,
   "org.apache.pekko" %% "pekko-actor-testkit-typed" % PekkoVersion % Test,
-  "org.specs2"       %% "specs2-core"               % "4.20.5"     % Test,
-  "org.specs2"       %% "specs2-junit"              % "4.20.5"     % Test,
+  "org.specs2"       %% "specs2-core"               % "4.20.7"     % Test,
+  "org.specs2"       %% "specs2-junit"              % "4.20.7"     % Test,
   "junit"             % "junit"                     % "4.13.2"     % Test,
-  "org.slf4j"         % "slf4j-api"                 % "2.0.12"     % Test,
+  "org.slf4j"         % "slf4j-api"                 % "2.0.13"     % Test,
   "org.slf4j"         % "slf4j-jcl"                 % "1.7.36"     % Test,
   "org.scalatest"    %% "scalatest"                 % "3.2.18"     % Test
 )
