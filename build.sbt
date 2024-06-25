@@ -8,7 +8,7 @@ version := "1.2.1-pekko-1.0.x"
 
 val Scala212Version = "2.12.19"
 val Scala213Version = "2.13.14"
-val Scala3Version = "3.4.1"
+val Scala3Version = "3.4.2"
 val PekkoVersion = "1.0.3"
 
 ThisBuild / scalaVersion := Scala213Version
@@ -27,7 +27,7 @@ libraryDependencies ++= Seq(
   "junit"             % "junit"                     % "4.13.2"     % Test,
   "org.slf4j"         % "slf4j-api"                 % "2.0.13"     % Test,
   "org.slf4j"         % "slf4j-jcl"                 % "1.7.36"     % Test,
-  "org.scalatest"    %% "scalatest"                 % "3.2.18"     % Test
+  "org.scalatest"    %% "scalatest"                 % "3.2.19"     % Test
 )
 
 // Sonatype release settings
