@@ -68,6 +68,9 @@ jobs:
           java-version: 21
           cache: sbt
 
+      - name: Setup sbt
+        uses: sbt/setup-sbt@v1
+
       - name: Install missing sbt
         if: matrix.os == 'macos-latest'
         run: brew install sbt
