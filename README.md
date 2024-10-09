@@ -5,9 +5,9 @@ pekko-quartz-scheduler
 
 > This repository is the Apache Pekko variant of [enragedginger/akka-quartz-scheduler](https://github.com/enragedginger/akka-quartz-scheduler).
 
-Quartz Extension and utilities for true scheduling in Apache Pekko 1.0.x.
+Quartz Extension and utilities for true scheduling in Apache Pekko 1.1.x.
 
-Current release is built for Scala 2.13.x and Apache Pekko 1.0.x and is available on Maven Central. If you would like support
+Current release is built for Scala 2.12.x, 2.13.x, 3 and Apache Pekko 1.1.x and is available on Maven Central. If you would like support
 for a different combination of Scala and Apache Pekko, simply post your request on the issues page (as well as a reason as to
 why the currently available versions won't work for you. I'm always curious about these things).
 
