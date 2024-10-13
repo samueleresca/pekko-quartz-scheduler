@@ -4,7 +4,7 @@ name := "pekko-quartz-scheduler"
 
 organization := "io.github.samueleresca"
 
-version := "1.2.2-pekko-1.0.x"
+version := "1.3.0-pekko-1.1.x"
 
 val Scala212Version = "2.12.20"
 val Scala213Version = "2.13.15"
