@@ -3,17 +3,14 @@ package org.apache.pekko.extension.quartz
 import org.apache.pekko.actor._
 import org.apache.pekko.japi.Option.Some
 import org.apache.pekko.testkit._
-import org.junit.runner.RunWith
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.matchers.must.Matchers
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
-import org.specs2.runner.JUnitRunner
 
 import java.util.{ Calendar, Date }
 import scala.concurrent._
 import scala.concurrent.duration._
 
-@RunWith(classOf[JUnitRunner])
 class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
     extends TestKit(_system: ActorSystem)
     with ImplicitSender
@@ -28,7 +25,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
 
   def this() = this(ActorSystem("QuartzSchedulerFunctionalSpec", SchedulingFunctionalTest.sampleConfiguration))
 
-  "The Quartz Scheduling Extension" must {
+  "The Quartz Scheduling Extension" should {
 
     val tickTolerance = SchedulingFunctionalTest.tickTolerance
 
@@ -37,10 +34,9 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
       val probe = TestProbe()
       receiver ! NewProbe(probe.ref)
 
-      an[IllegalArgumentException] must be thrownBy {
+      assertThrows[IllegalArgumentException] {
         QuartzSchedulerExtension(_system).schedule("fooBarBazSpamEggsOMGPonies!", receiver, Tick)
       }
-
     }
 
     "Properly Setup & Execute a Cron Job with correct fireTime" in {
@@ -61,7 +57,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
       (0 until 5).foreach { i =>
         assert(receipt(i) === jobDt.getTime + i * 10 * 1000 +- tickTolerance)
       }
-      receipt must have size 5
+      receipt should have size 5
     }
 
     "Properly Setup & Execute a Cron Job with correct fireTimes" in {
@@ -86,7 +82,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
         assert(receipt(i)._2.getOrElse(0L) === expectedPrevious +- tickTolerance)
         assert(receipt(i)._3.get === expectedNext +- tickTolerance)
       }
-      receipt must have size 5
+      receipt should have size 5
     }
 
     "Properly Setup & Execute a Cron Job" in {
@@ -100,9 +96,8 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
         Tock
       }
 
-      receipt must contain(Tock)
-      receipt must have size 5
-
+      receipt should contain(Tock)
+      receipt should have size 5
     }
 
     "Properly Setup & Execute a Cron Job via Event Stream" in {
@@ -117,9 +112,8 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
         Tock
       }
 
-      receipt must contain(Tock)
-      receipt must have size 5
-
+      receipt should contain(Tock)
+      receipt should have size 5
     }
 
     "Delayed Setup & Execute a Cron Job" in {
@@ -137,7 +131,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
         Tock
       }
 
-      receipt must have size 0
+      receipt should have size 0
 
       /*
       Get the startDate and calculate the next run based on the startDate
@@ -154,7 +148,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
       scheduleCalender.add(Calendar.SECOND, secs)
 
       // Dates must be equal in seconds
-      Math.abs(jobCalender.getTimeInMillis - scheduleCalender.getTimeInMillis) <= 1000L mustEqual true
+      Math.abs(jobCalender.getTimeInMillis - scheduleCalender.getTimeInMillis) <= 1000L shouldEqual true
     }
 
     "Properly Setup & Execute a Cron Job with ActorSelection as receiver" in {
@@ -168,13 +162,13 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
         Tock
       }
 
-      receipt must contain(Tock)
-      receipt must have size 5
+      receipt should contain(Tock)
+      receipt should have size 5
     }
 
   }
 
-  "The Quartz Scheduling Extension with Reschedule" must {
+  "The Quartz Scheduling Extension with Reschedule" should {
 
     "Reschedule an existing Cron Job" in {
       val receiver = _system.actorOf(Props(new ScheduleTestReceiver))
@@ -187,7 +181,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
           QuartzSchedulerExtension(_system).rescheduleJob("cronEveryEvenSecond", receiver, Tick, None, "0/59 * * ? * *")
         val jobCalender = Calendar.getInstance()
         jobCalender.setTime(newDate)
-        jobCalender.get(Calendar.SECOND) mustEqual 59
+        jobCalender.get(Calendar.SECOND) shouldEqual 59
       }
     }
 
@@ -204,12 +198,12 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
     assert(nextRun.getOrElse(new java.util.Date()) == jobDt)
   }
 
-  "The Quartz Scheduling Extension with Dynamic Create" must {
+  "The Quartz Scheduling Extension with Dynamic Create" should {
 
     "Throw exception if creating schedule that already exists" in {
       system.actorOf(Props(new ScheduleTestReceiver))
 
-      an[IllegalArgumentException] must be thrownBy {
+      assertThrows[IllegalArgumentException] {
         QuartzSchedulerExtension(_system).createSchedule("cronEvery10Seconds", None, "*/10 * * ? * *", None)
       }
     }
@@ -217,7 +211,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
     "Throw exception if creating a schedule that has invalid cron expression" in {
       _system.actorOf(Props(new ScheduleTestReceiver))
 
-      an[IllegalArgumentException] must be thrownBy {
+      assertThrows[IllegalArgumentException] {
         QuartzSchedulerExtension(_system).createSchedule("nonExistingCron", None, "*/10 x * ? * *", None)
       }
     }
@@ -240,8 +234,8 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
         Tock
       }
 
-      receipt must contain(Tock)
-      receipt must have size 5
+      receipt should contain(Tock)
+      receipt should have size 5
     }
 
   }
@@ -251,7 +245,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
    * schedule, rescheduleJob} and adds deleleteJobSchedule (unscheduleJob synonym created for naming consistency with
    * existing rescheduleJob method).
    */
-  "The Quartz Scheduling Extension with Dynamic create, update, delete JobSchedule operations" must {
+  "The Quartz Scheduling Extension with Dynamic create, update, delete JobSchedule operations" should {
 
     "Throw exception if creating job schedule that already exists" in {
 
@@ -260,7 +254,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
       val probe = TestProbe()
       receiver ! NewProbe(probe.ref)
 
-      an[IllegalArgumentException] must be thrownBy {
+      assertThrows[IllegalArgumentException] {
         QuartzSchedulerExtension(_system).createJobSchedule(
           alreadyExistingScheduleJobName,
           receiver,
@@ -275,7 +269,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
     "Throw exception if creating a scheduled job with schedule that has invalid cron expression" in {
       val receiver = _system.actorOf(Props(new ScheduleTestReceiver))
 
-      an[IllegalArgumentException] must be thrownBy {
+      assertThrows[IllegalArgumentException] {
         QuartzSchedulerExtension(_system).createJobSchedule(
           "nonExistingCron_2",
           receiver,
@@ -306,8 +300,8 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
         Tock
       }
 
-      receipt must contain(Tock)
-      receipt must have size 5
+      receipt should contain(Tock)
+      receipt should have size 5
     }
 
     "Reschedule an existing job schedule Cron Job" in {
@@ -336,7 +330,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
         )
         val jobCalender = Calendar.getInstance()
         jobCalender.setTime(newFirstTimeTriggerDate)
-        jobCalender.get(Calendar.SECOND) mustEqual 42
+        jobCalender.get(Calendar.SECOND) shouldEqual 42
       }
     }
 
@@ -371,7 +365,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
           )
           val jobCalender = Calendar.getInstance()
           jobCalender.setTime(newJobDt)
-          jobCalender.get(Calendar.SECOND) mustEqual 8
+          jobCalender.get(Calendar.SECOND) shouldEqual 8
         } else
           fail(s"deleteJobSchedule($toDeleteSheduleJobName) expected to return true returned false.")
       }
@@ -441,7 +435,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
         )
         val jobCalender1 = Calendar.getInstance()
         jobCalender1.setTime(newJobDt1)
-        jobCalender1.get(Calendar.SECOND) mustEqual 8
+        jobCalender1.get(Calendar.SECOND) shouldEqual 8
 
         // Create a new schedule job reusing former toBeDeletedAllJobName2. This will fail if deleteAll is not effective.
         val newJobDt2 = QuartzSchedulerExtension(_system).createJobSchedule(
@@ -453,7 +447,7 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
         )
         val jobCalender2 = Calendar.getInstance()
         jobCalender2.setTime(newJobDt2)
-        jobCalender2.get(Calendar.SECOND) mustEqual 9
+        jobCalender2.get(Calendar.SECOND) shouldEqual 9
       }
     }
   }
@@ -482,5 +476,4 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
         )
     }
   }
-
 }
