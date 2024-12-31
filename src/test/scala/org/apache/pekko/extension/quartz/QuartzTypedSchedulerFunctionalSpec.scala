@@ -165,7 +165,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
   }
 
   "The Quartz Scheduling Extension with Reschedule" must {
-    "Reschedule an existing Cron Job" ignore {
+    "Reschedule an existing Cron Job" in {
       val receiver = testKit.spawn(ScheduleTestReceiver())
       val probe = testKit.createTestProbe[AnyRef]()
       receiver ! NewProbe(probe.ref)
