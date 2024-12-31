@@ -1,74 +1,62 @@
 package org.apache.pekko.extension.quartz
 
-import org.specs2.runner.JUnitRunner
-import org.specs2.Specification
-import org.junit.runner.RunWith
-import org.specs2.matcher.ThrownExpectations
 import com.typesafe.config.ConfigFactory
-import java.util.{ Calendar, TimeZone }
-import org.quartz.impl.triggers.CronTriggerImpl
 import org.quartz.TriggerUtils
+import org.quartz.impl.triggers.CronTriggerImpl
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+
+import java.util.{ Calendar, TimeZone }
 import scala.collection.JavaConverters._
 
-@RunWith(classOf[JUnitRunner])
-class QuartzScheduleSpec extends Specification with ThrownExpectations {
-  def is = s2"""
-    This is a specification to validate the behavior of the Quartz Schedule configuration parser
-      The configuration parser should
-        Fetch a list of all schedules in the configuration block $parseScheduleList
-        Be able to parse out a cron schedule                     $parseCronSchedule
-        Be able to parse out a cron schedule w/ calendars        $parseCronScheduleCalendars
-    """
+class QuartzScheduleSpec extends AnyWordSpec with Matchers {
+  "QuartzSchedule" should {
+    "fetch a list of all schedules in the configuration block" in {
+      schedules should have size 2
+    }
 
-  def parseScheduleList =
-    schedules must haveSize(2)
+    "parse out a cron schedule" in {
+      schedules should contain key "cronEvery10Seconds"
+      schedules("cronEvery10Seconds") shouldBe a[QuartzCronSchedule]
+      val s = schedules("cronEvery10Seconds").asInstanceOf[QuartzCronSchedule]
 
-  def parseCronSchedule = {
-    schedules must haveKey("cronEvery10Seconds")
-    schedules("cronEvery10Seconds") must haveClass[QuartzCronSchedule]
-    val s = schedules("cronEvery10Seconds").asInstanceOf[QuartzCronSchedule]
+      // build a trigger to test against
+      val _t = s.buildTrigger("parseCronScheduleTest", None)
 
-    // build a trigger to test against
-    val _t = s.buildTrigger("parseCronScheduleTest", None)
+      _t shouldBe a[CronTriggerImpl]
 
-    _t must haveClass[CronTriggerImpl]
+      val t = _t.asInstanceOf[CronTriggerImpl]
 
-    val t = _t.asInstanceOf[CronTriggerImpl]
+      val startHour = 3
+      val endHour = 9
+      val numExpectedFirings = (endHour - startHour) * 60 * 6
+      val firings = TriggerUtils.computeFireTimesBetween(t, null, getDate(startHour, 0), getDate(endHour, 0)).asScala
 
-    val startHour = 3
-    val endHour = 9
-    val numExpectedFirings = (endHour - startHour) * 60 /* 60 minutes in an hour */ * 6 /* 6 ticks per minute */
-    val firings = TriggerUtils.computeFireTimesBetween(t, null, getDate(startHour, 0), getDate(endHour, 0)).asScala
+      firings should have size numExpectedFirings
+    }
 
-    firings must have size numExpectedFirings
-  }
+    "parse out a cron schedule with calendars" in {
+      val calendars = QuartzCalendars(sampleCalendarConfig, TimeZone.getTimeZone("UTC"))
+      val bizHoursCal = calendars("CronOnlyBusinessHours")
 
-  def parseCronScheduleCalendars = {
-    // relies on calendar parsing working...
-    val calendars = QuartzCalendars(sampleCalendarConfig, TimeZone.getTimeZone("UTC"))
-    // excludes anything not during business hours - 8 - 5
-    val bizHoursCal = calendars("CronOnlyBusinessHours")
+      schedules should contain key "cronEvery30Seconds"
+      schedules("cronEvery30Seconds") shouldBe a[QuartzCronSchedule]
+      val s = schedules("cronEvery30Seconds").asInstanceOf[QuartzCronSchedule]
 
-    schedules must haveKey("cronEvery30Seconds")
-    schedules("cronEvery30Seconds") must haveClass[QuartzCronSchedule]
-    val s = schedules("cronEvery30Seconds").asInstanceOf[QuartzCronSchedule]
+      val _t = s.buildTrigger("parseCronScheduleTest", None)
 
-    // build a trigger to test against
-    val _t = s.buildTrigger("parseCronScheduleTest", None)
+      _t shouldBe a[CronTriggerImpl]
 
-    _t must haveClass[CronTriggerImpl]
+      val t = _t.asInstanceOf[CronTriggerImpl]
 
-    val t = _t.asInstanceOf[CronTriggerImpl]
+      val startHour = 3
+      val endHour = 22
+      val numExpectedFirings = (18 - 8) * 60 * 2
+      val firings =
+        TriggerUtils.computeFireTimesBetween(t, bizHoursCal, getDate(startHour, 0), getDate(endHour, 0)).asScala
 
-    val startHour = 3
-    val endHour = 22
-    // we don't follow the startHour and endHour because of business hours..
-    // the cron exemption rule (taken from quartz docs) actually lets jobs run from 0800 - 1759 (doh)
-    val numExpectedFirings = (18 - 8) * 60 /* 60 minutes in an hour */ * 2 /* 2 ticks per minute */
-    val firings =
-      TriggerUtils.computeFireTimesBetween(t, bizHoursCal, getDate(startHour, 0), getDate(endHour, 0)).asScala
-
-    firings must have size numExpectedFirings
+      firings should have size numExpectedFirings
+    }
   }
 
   def getDate(hour: Int, minute: Int)(implicit tz: TimeZone = TimeZone.getTimeZone("UTC")) = {

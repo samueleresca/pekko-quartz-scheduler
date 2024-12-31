@@ -7,18 +7,15 @@ import org.apache.pekko.actor.typed.eventstream.EventStream.Subscribe
 import org.apache.pekko.actor.typed.scaladsl.Behaviors
 import org.apache.pekko.actor.typed.{ ActorRef, Behavior }
 import org.apache.pekko.japi.Option.Some
-import org.junit.runner.RunWith
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.matchers.must.Matchers
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
-import org.specs2.runner.JUnitRunner
 
 import java.util.logging.Logger
 import java.util.{ Calendar, Date }
 import scala.concurrent._
 import scala.concurrent.duration._
 
-@RunWith(classOf[JUnitRunner])
 class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers with BeforeAndAfterAll {
 
   private lazy val testKit = ActorTestKit(SchedulingFunctionalTest.sampleConfiguration)
@@ -38,7 +35,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
       val probe = testKit.createTestProbe[AnyRef]()
       receiver ! NewProbe(probe.ref)
 
-      an[IllegalArgumentException] must be thrownBy {
+      assertThrows[IllegalArgumentException] {
         QuartzSchedulerTypedExtension(_system).scheduleTyped("fooBarBazSpamEggsOMGPonies!", receiver, Tick)
       }
 
@@ -61,7 +58,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
         assert(obj === jobDt.getTime + i * 10 * 1000 +- tickTolerance)
       }
 
-      receipt must have size 5
+      receipt should have size 5
       extension.cancelJob("cronEvery10SecondsWithFireTime")
     }
 
@@ -87,7 +84,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
         assert(obj._3.get === expectedNext +- tickTolerance)
       }
 
-      receipt must have size 5
+      receipt should have size 5
       extension.cancelJob("cronEvery10SecondsWithFireTime")
     }
 
@@ -101,8 +98,8 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
       /* This is a somewhat questionable test as the timing between components may not match the tick off. */
       val receipt = probe.receiveMessages(5, Duration(1, MINUTES))
 
-      receipt must contain(Tock)
-      receipt must have size 5
+      receipt should contain(Tock)
+      receipt should have size 5
       extension.cancelJob("cronEvery10Seconds")
     }
 
@@ -117,8 +114,8 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
       /* This is a somewhat questionable test as the timing between components may not match the tick off. */
       val receipt = probe.receiveMessages(5, Duration(1, MINUTES))
 
-      receipt must contain(Tock)
-      receipt must have size 5
+      receipt should contain(Tock)
+      receipt should have size 5
       extension.cancelJob("cronEvery12Seconds")
     }
 
@@ -134,7 +131,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
       val jobDt = extension.scheduleTyped("cronEvery15Seconds", receiver, Tick, Some(after65s))
 
       var receipt = Seq[AnyRef]()
-      an[AssertionError] must be thrownBy {
+      assertThrows[AssertionError] {
         /* This is a somewhat questionable test as the timing between components may not match the tick off. */
         var maxMessages = 2
         receipt = probe.fishForMessage(Duration(30, SECONDS)) {
@@ -145,7 +142,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
           case _ => FishingOutcome.ContinueAndIgnore
         }
       }
-      receipt must have size 0
+      receipt should have size 0
 
       /*
       Get the startDate and calculate the next run based on the startDate
@@ -162,7 +159,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
       scheduleCalender.add(Calendar.SECOND, secs)
 
       // Dates must be equal in seconds
-      Math.abs(jobCalender.getTimeInMillis - scheduleCalender.getTimeInMillis) <= 1000L mustEqual true
+      Math.abs(jobCalender.getTimeInMillis - scheduleCalender.getTimeInMillis) <= 1000L shouldEqual true
       extension.cancelJob("cronEvery15Seconds")
     }
   }
@@ -185,7 +182,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
         )
         val jobCalender = Calendar.getInstance()
         jobCalender.setTime(newDate)
-        jobCalender.get(Calendar.SECOND) mustEqual 59
+        jobCalender.get(Calendar.SECOND) shouldEqual 59
       }
       extension.cancelJob("cronEveryEvenSecond")
     }
@@ -205,7 +202,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
     "Throw exception if creating schedule that already exists" in {
       testKit.spawn(ScheduleTestReceiver())
 
-      an[IllegalArgumentException] must be thrownBy {
+      assertThrows[IllegalArgumentException] {
         QuartzSchedulerTypedExtension(_system).createSchedule("cronEvery10Seconds", None, "*/10 * * ? * *", None)
       }
     }
@@ -213,7 +210,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
     "Throw exception if creating a schedule that has invalid cron expression" in {
       testKit.spawn(ScheduleTestReceiver())
 
-      an[IllegalArgumentException] must be thrownBy {
+      assertThrows[IllegalArgumentException] {
         QuartzSchedulerTypedExtension(_system).createSchedule("nonExistingCron", None, "*/10 x * ? * *", None)
       }
     }
@@ -234,8 +231,8 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
       /* This is a somewhat questionable test as the timing between components may not match the tick off. */
       val receipt = probe.receiveMessages(5, Duration(30, SECONDS))
 
-      receipt must contain(Tock)
-      receipt must have size 5
+      receipt should contain(Tock)
+      receipt should have size 5
     }
   }
 
@@ -253,7 +250,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
       val probe = testKit.createTestProbe[AnyRef]()
       receiver ! NewProbe(probe.ref)
 
-      an[IllegalArgumentException] must be thrownBy {
+      assertThrows[IllegalArgumentException] {
         QuartzSchedulerTypedExtension(_system).createTypedJobSchedule(
           alreadyExistingScheduleJobName,
           receiver,
@@ -268,7 +265,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
     "Throw exception if creating a scheduled job with schedule that has invalid cron expression" in {
       val receiver = testKit.spawn(ScheduleTestReceiver())
 
-      an[IllegalArgumentException] must be thrownBy {
+      assertThrows[IllegalArgumentException] {
         QuartzSchedulerTypedExtension(_system).createTypedJobSchedule(
           "nonExistingCron_2",
           receiver,
@@ -297,8 +294,8 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
       /* This is a somewhat questionable test as the timing between components may not match the tick off. */
       val receipt = probe.receiveMessages(5, Duration(30, SECONDS))
 
-      receipt must contain(Tock)
-      receipt must have size 5
+      receipt should contain(Tock)
+      receipt should have size 5
     }
 
     "Reschedule an existing job schedule Cron Job" in {
@@ -327,7 +324,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
         )
         val jobCalender = Calendar.getInstance()
         jobCalender.setTime(newFirstTimeTriggerDate)
-        jobCalender.get(Calendar.SECOND) mustEqual 42
+        jobCalender.get(Calendar.SECOND) shouldEqual 42
       }
     }
 
@@ -362,7 +359,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
           )
           val jobCalender = Calendar.getInstance()
           jobCalender.setTime(newJobDt)
-          jobCalender.get(Calendar.SECOND) mustEqual 8
+          jobCalender.get(Calendar.SECOND) shouldEqual 8
         } else
           fail(s"deleteJobSchedule($toDeleteSheduleJobName) expected to return true returned false.")
       }

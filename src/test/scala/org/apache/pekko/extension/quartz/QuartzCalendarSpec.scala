@@ -1,86 +1,100 @@
 package org.apache.pekko.extension.quartz
 
-import java.time.LocalDate
-
-import org.specs2.runner.JUnitRunner
-import org.specs2.Specification
-import org.junit.runner.RunWith
-import org.specs2.matcher.ThrownExpectations
 import com.typesafe.config.ConfigFactory
-import java.util.{ Calendar, Date, TimeZone }
-
-import scala.collection.JavaConverters._
 import org.quartz.impl.calendar._
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatest.matchers.should.Matchers
 
-@RunWith(classOf[JUnitRunner])
-class QuartzCalendarSpec extends Specification with ThrownExpectations {
-  def is = s2"""
-    This is a specification to validate the behavior of the Quartz Calendar configuration modelling
+import java.time.LocalDate
+import java.util.{ Calendar, Date, TimeZone }
+import scala.collection.JavaConverters._
 
-    The configuration parser should
-      Fetch a list of all calendars in a configuration block   $parseCalendarList
-      Be able to parse and create an Annual calendar           $parseAnnual
-      Be able to parse and create a Holiday calendar           $parseHoliday
-      Be able to parse and create a Daily calendar
-          With a standard entry                                $parseDaily
+class QuartzCalendarSpec extends AnyFunSpec with Matchers with BeforeAndAfterAll {
+  describe("Quartz Calendar configuration modelling") {
+    it("should fetch a list of all calendars in a configuration block") {
+      calendars.size shouldBe 7
+    }
 
-      Be able to parse and create a Monthly calendar
-          With just one day (a list, but single digit)         $parseMonthlyOneDay
-          With a list (multiple digits)                        $parseMonthlyList
+    it("should parse and create an Annual calendar") {
+      calendars should contain key "WinterClosings"
+      calendars("WinterClosings") shouldBe a[AnnualCalendar]
+      val cal = calendars("WinterClosings").asInstanceOf[AnnualCalendar]
 
-      Be able to parse and create a Weekly calendar
-          With Ints for Day Names                              $parseWeeklyInt
+      import Calendar._
 
-      Be able to parse and create a Cron calendar              $parseCronStyle
-    """
+      cal.isDayExcluded(getCalendar(JANUARY, 1, 1995)) shouldBe true
+      cal.isDayExcluded(getCalendar(JANUARY, 1, 1975)) shouldBe true
+      cal.isDayExcluded(getCalendar(JANUARY, 1, 2075)) shouldBe true
 
-  def parseCalendarList = {
-    // TODO - more robust check
-    calendars must have size 7
-  }
+      cal.isDayExcluded(getCalendar(JANUARY, 2, 1995)) shouldBe false
+      cal.isDayExcluded(getCalendar(JANUARY, 2, 1975)) shouldBe false
+      cal.isDayExcluded(getCalendar(JANUARY, 2, 2075)) shouldBe false
 
-  def parseAnnual = {
-    calendars must haveKey("WinterClosings")
-    calendars("WinterClosings") must haveClass[AnnualCalendar]
-    val cal = calendars("WinterClosings").asInstanceOf[AnnualCalendar]
+      cal.isDayExcluded(getCalendar(DECEMBER, 25, 1995)) shouldBe true
+      cal.isDayExcluded(getCalendar(DECEMBER, 25, 1975)) shouldBe true
+      cal.isDayExcluded(getCalendar(DECEMBER, 25, 2075)) shouldBe true
 
-    import Calendar._
+      cal.isDayExcluded(getCalendar(DECEMBER, 31, 1995)) shouldBe false
+      cal.isDayExcluded(getCalendar(DECEMBER, 31, 1975)) shouldBe false
+      cal.isDayExcluded(getCalendar(DECEMBER, 31, 2075)) shouldBe false
+    }
 
-    cal.isDayExcluded(getCalendar(JANUARY, 1, 1995)) must beTrue
-    cal.isDayExcluded(getCalendar(JANUARY, 1, 1975)) must beTrue
-    cal.isDayExcluded(getCalendar(JANUARY, 1, 2075)) must beTrue
+    it("should parse and create a Holiday calendar") {
+      calendars should contain key "Easter"
+      calendars("Easter") shouldBe a[HolidayCalendar]
 
-    cal.isDayExcluded(getCalendar(JANUARY, 2, 1995)) must beFalse
-    cal.isDayExcluded(getCalendar(JANUARY, 2, 1975)) must beFalse
-    cal.isDayExcluded(getCalendar(JANUARY, 2, 2075)) must beFalse
+      val excludedDates = calendars("Easter").asInstanceOf[HolidayCalendar].getExcludedDates.asScala
+      excludedDates should contain allOf (
+        getDate(2013, 3, 31),
+        getDate(2014, 4, 20),
+        getDate(2015, 4, 5),
+        getDate(2016, 3, 27),
+        getDate(2017, 4, 16)
+      )
+    }
 
-    cal.isDayExcluded(getCalendar(DECEMBER, 25, 1995)) must beTrue
-    cal.isDayExcluded(getCalendar(DECEMBER, 25, 1975)) must beTrue
-    cal.isDayExcluded(getCalendar(DECEMBER, 25, 2075)) must beTrue
+    it("should parse and create a Daily calendar with a standard entry") {
+      calendars should contain key "HourOfTheWolf"
+      calendars("HourOfTheWolf") shouldBe a[DailyCalendar]
+      val cal = calendars("HourOfTheWolf").asInstanceOf[DailyCalendar]
 
-    cal.isDayExcluded(getCalendar(DECEMBER, 31, 1995)) must beFalse
-    cal.isDayExcluded(getCalendar(DECEMBER, 31, 1975)) must beFalse
-    cal.isDayExcluded(getCalendar(DECEMBER, 31, 2075)) must beFalse
-  }
+      implicit val tz = cal.getTimeZone
 
-  def parseHoliday = {
-    calendars must haveKey("Easter")
-    calendars("Easter") must haveClass[HolidayCalendar]
+      cal.toString should include("'03:00:00:000 - 05:00:00:000', inverted: false")
+    }
 
-    calendars("Easter").asInstanceOf[HolidayCalendar].getExcludedDates.asScala must containAllOf(
-      List(getDate(2013, 3, 31), getDate(2014, 4, 20), getDate(2015, 4, 5), getDate(2016, 3, 27), getDate(2017, 4, 16))
-    )
-  }
+    it("should parse and create a Monthly calendar with just one day") {
+      calendars should contain key "FirstOfMonth"
+      calendars("FirstOfMonth") shouldBe a[MonthlyCalendar]
+      val cal = calendars("FirstOfMonth").asInstanceOf[MonthlyCalendar]
 
-  def parseDaily = {
-    calendars must haveKey("HourOfTheWolf")
-    calendars("HourOfTheWolf") must haveClass[DailyCalendar]
-    val cal = calendars("HourOfTheWolf").asInstanceOf[DailyCalendar]
+      cal.getDaysExcluded.toList should contain theSameElementsAs _monthDayRange(List(1))
+    }
 
-    implicit val tz = cal.getTimeZone
+    it("should parse and create a Monthly calendar with multiple days") {
+      calendars should contain key "FirstAndLastOfMonth"
+      calendars("FirstAndLastOfMonth") shouldBe a[MonthlyCalendar]
+      val cal = calendars("FirstAndLastOfMonth").asInstanceOf[MonthlyCalendar]
 
-    // This is based on how quartz does its own testing. Not ideal.
-    cal.toString must contain("'03:00:00:000 - 05:00:00:000', inverted: false")
+      cal.getDaysExcluded.toList should contain theSameElementsAs _monthDayRange(List(1, 31))
+    }
+
+    it("should parse and create a Weekly calendar with Ints for Day Names") {
+      calendars should contain key "MondaysSuck"
+      calendars("MondaysSuck") shouldBe a[WeeklyCalendar]
+      val cal = calendars("MondaysSuck").asInstanceOf[WeeklyCalendar]
+
+      cal.getDaysExcluded.toList should contain theSameElementsAs _weekDayRange(List(2))
+    }
+
+    it("should parse and create a Cron calendar") {
+      calendars should contain key "CronOnlyBusinessHours"
+      calendars("CronOnlyBusinessHours") shouldBe a[CronCalendar]
+      val cal = calendars("CronOnlyBusinessHours").asInstanceOf[CronCalendar]
+
+      cal.getCronExpression.toString shouldBe "* * 0-7,18-23 ? * *"
+    }
   }
 
   def _monthDayRange(days: List[Int]) = (1 to 31).map { d => days contains d }
@@ -88,38 +102,16 @@ class QuartzCalendarSpec extends Specification with ThrownExpectations {
   // for some inexplicable reason WeeklyCalendar (not tested by quartz) includes day 0 also?!?!
   def _weekDayRange(days: List[Int]) = (0 to 7).map { d => days contains d }
 
-  def parseMonthlyOneDay = {
-    calendars must haveKey("FirstOfMonth")
-    calendars("FirstOfMonth") must haveClass[MonthlyCalendar]
-    val cal = calendars("FirstOfMonth").asInstanceOf[MonthlyCalendar]
-
-    cal.getDaysExcluded.toList must containTheSameElementsAs(_monthDayRange(List(1)))
+  def getCalendar(month: Int, day: Int, year: Int)(implicit tz: TimeZone = TimeZone.getTimeZone("UTC")): Calendar = {
+    val _day = Calendar.getInstance(tz)
+    _day.set(year, month, day)
+    _day
   }
 
-  def parseMonthlyList = {
-    calendars must haveKey("FirstAndLastOfMonth")
-    calendars("FirstAndLastOfMonth") must haveClass[MonthlyCalendar]
-    val cal = calendars("FirstAndLastOfMonth").asInstanceOf[MonthlyCalendar]
+  def getDate(year: Int, month: Int, day: Int): Date =
+    Date.from(LocalDate.of(year, month, day).atStartOfDay(java.time.ZoneId.systemDefault).toInstant)
 
-    cal.getDaysExcluded.toList must containTheSameElementsAs(_monthDayRange(List(1, 31)))
-  }
-
-  def parseWeeklyInt = {
-    calendars must haveKey("MondaysSuck")
-    calendars("MondaysSuck") must haveClass[WeeklyCalendar]
-    val cal = calendars("MondaysSuck").asInstanceOf[WeeklyCalendar]
-
-    cal.getDaysExcluded.toList must containTheSameElementsAs(_weekDayRange(List(2)))
-  }
-
-  def parseCronStyle = {
-    calendars must haveKey("CronOnlyBusinessHours")
-    calendars("CronOnlyBusinessHours") must haveClass[CronCalendar]
-    val cal = calendars("CronOnlyBusinessHours").asInstanceOf[CronCalendar]
-
-    // No real external testability of the Cron Calendar provided by quartz; rely on quartz working.
-    cal.getCronExpression.toString must beEqualTo("* * 0-7,18-23 ? * *")
-  }
+  lazy val calendars = QuartzCalendars(sampleConfiguration, TimeZone.getDefault)
 
   lazy val sampleConfiguration = {
     ConfigFactory.parseString("""
@@ -167,16 +159,4 @@ class QuartzCalendarSpec extends Specification with ThrownExpectations {
         }
       """.stripMargin)
   }
-
-  def getCalendar(month: Int, day: Int, year: Int)(implicit tz: TimeZone = TimeZone.getTimeZone("UTC")): Calendar = {
-    val _day = Calendar.getInstance(tz)
-    _day.set(year, month, day)
-    _day
-  }
-
-  def getDate(year: Int, month: Int, day: Int): Date =
-    Date.from(LocalDate.of(year, month, day).atStartOfDay(java.time.ZoneId.systemDefault).toInstant)
-
-  lazy val calendars = QuartzCalendars(sampleConfiguration, TimeZone.getDefault)
-
 }
