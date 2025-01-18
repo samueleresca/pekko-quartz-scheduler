@@ -18,7 +18,7 @@ ThisBuild / scalacOptions ++= Seq("-language:postfixOps")
 libraryDependencies ++= Seq(
   "org.apache.pekko"     %% "pekko-actor"       % PekkoVersion,
   "org.apache.pekko"     %% "pekko-actor-typed" % PekkoVersion,
-  ("org.quartz-scheduler" % "quartz"            % "2.3.2")
+  ("org.quartz-scheduler" % "quartz"            % "2.4.0")
     .exclude("com.zaxxer", "HikariCP-java7"),
   "org.apache.pekko" %% "pekko-testkit"             % PekkoVersion % Test,
   "org.apache.pekko" %% "pekko-actor-testkit-typed" % PekkoVersion % Test,
