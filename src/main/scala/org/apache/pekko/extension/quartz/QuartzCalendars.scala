@@ -262,7 +262,7 @@ object QuartzCalendars {
 
     /// todo - make this whole thing a pattern extractor?
     catchMissing.either(config.getString("type")) match {
-      case Left(_) => throw new IllegalArgumentException("Calendar Type must be defined for " + name)
+      case Left(_)    => throw new IllegalArgumentException("Calendar Type must be defined for " + name)
       case Right(typ) =>
         val cal = typ.toUpperCase match {
           case "ANNUAL"  => parseAnnualCalendar(name, config)(timezone)
@@ -271,7 +271,7 @@ object QuartzCalendars {
           case "MONTHLY" => parseMonthlyCalendar(name, config)
           case "WEEKLY"  => parseWeeklyCalendar(name, config)
           case "CRON"    => parseCronCalendar(name, config)
-          case other =>
+          case other     =>
             throw new IllegalArgumentException(
               "Unknown Quartz Calendar type '%s' for calendar '%s'. Valid types are Annual, Holiday, Daily, Monthly, Weekly, and Cron."
                 .format(other, name)
