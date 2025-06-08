@@ -475,7 +475,7 @@ class QuartzSchedulerExtension(system: ActorSystem) extends Extension {
   private[quartz] def scheduleInternal(name: String, receiver: AnyRef, msg: AnyRef, startDate: Option[Date]): Date =
     schedules.get(name) match {
       case Some(schedule) => scheduleJob(name, receiver, msg, startDate)(schedule)
-      case None =>
+      case None           =>
         throw new IllegalArgumentException("No matching quartz configuration found for schedule '%s'".format(name))
     }
 
