@@ -96,7 +96,7 @@ class SimpleActorMessageJob extends Job {
         case ref: typed.ActorRef[_]                           => ref.asInstanceOf[typed.ActorRef[AnyRef]] ! msg
         case selection: org.apache.pekko.actor.ActorSelection => selection ! msg
         case eventStream: EventStream                         => eventStream.publish(msg)
-        case _ =>
+        case _                                                =>
           throw new JobExecutionException(
             "receiver as not expected type, must be ActorRef or ActorSelection, was %s".format(receiver.getClass)
           )
@@ -104,7 +104,7 @@ class SimpleActorMessageJob extends Job {
     } catch {
       // All exceptions thrown from a job, including Runtime, must be wrapped in a JobExcecutionException or Quartz ignores it
       case jee: JobExecutionException => throw jee
-      case t: Throwable =>
+      case t: Throwable               =>
         throw new JobExecutionException(
           "ERROR executing Job '%s': '%s'".format(key.getName, t.getMessage),
           t
