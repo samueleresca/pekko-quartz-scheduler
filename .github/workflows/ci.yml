@@ -23,7 +23,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        scala: [2.12.21, 2.13.16, 3.3.3]
+        scala: [2.12.21, 2.13.18, 3.3.3]
         java:
           - corretto@8
           - temurin@11
