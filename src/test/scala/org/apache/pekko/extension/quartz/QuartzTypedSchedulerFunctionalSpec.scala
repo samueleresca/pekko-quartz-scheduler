@@ -1,6 +1,5 @@
 package org.apache.pekko.extension.quartz
 
-import org.apache.pekko.actor.testkit.typed.FishingOutcome
 import org.apache.pekko.actor.testkit.typed.scaladsl.ActorTestKit
 import org.apache.pekko.actor.typed.eventstream.EventStream
 import org.apache.pekko.actor.typed.eventstream.EventStream.Subscribe
@@ -85,7 +84,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
       }
 
       receipt should have size 5
-      extension.cancelJob("cronEvery10SecondsWithFireTime")
+      extension.cancelJob("cronEvery10SecondsWithFireTimes")
     }
 
     "Properly Setup & Execute a Cron Job" in {
@@ -119,7 +118,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
       extension.cancelJob("cronEvery12Seconds")
     }
 
-    "Delayed Setup & Execute a Cron Job" ignore {
+    "Delayed Setup & Execute a Cron Job" in {
       val now = Calendar.getInstance()
       val t = now.getTimeInMillis
       val after65s = new Date(t + (35 * 1000))
@@ -128,21 +127,10 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
       val probe = testKit.createTestProbe[AnyRef]()
       receiver ! NewProbe(probe.ref)
       val extension = QuartzSchedulerTypedExtension(_system)
-      val jobDt = extension.scheduleTyped("cronEvery15Seconds", receiver, Tick, Some(after65s))
+      val jobDt = extension.scheduleTyped("cronEvery15SecondsTyped", receiver, Tick, Some(after65s))
 
-      var receipt = Seq[AnyRef]()
-      assertThrows[AssertionError] {
-        /* This is a somewhat questionable test as the timing between components may not match the tick off. */
-        var maxMessages = 2
-        receipt = probe.fishForMessage(Duration(30, SECONDS)) {
-          case Tock =>
-            maxMessages -= 1
-            if (maxMessages == 0) FishingOutcome.Complete
-            else FishingOutcome.Continue
-          case _ => FishingOutcome.ContinueAndIgnore
-        }
-      }
-      receipt should have size 0
+      /* This is a somewhat questionable test as the timing between components may not match the tick off. */
+      probe.expectNoMessage(Duration(30, SECONDS))
 
       /*
       Get the startDate and calculate the next run based on the startDate
@@ -160,7 +148,7 @@ class QuartzTypedSchedulerFunctionalSpec extends AnyWordSpecLike with Matchers w
 
       // Dates must be equal in seconds
       Math.abs(jobCalender.getTimeInMillis - scheduleCalender.getTimeInMillis) <= 1000L shouldEqual true
-      extension.cancelJob("cronEvery15Seconds")
+      extension.cancelJob("cronEvery15SecondsTyped")
     }
   }
 

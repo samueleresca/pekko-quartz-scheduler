@@ -22,6 +22,10 @@ object SchedulingFunctionalTest {
             description = "A cron job that fires off every 15 seconds"
             expression = "*/15 * * ? * *"
           }
+          cronEvery15SecondsTyped {
+            description = "A cron job that fires off every 15 seconds"
+            expression = "*/15 * * ? * *"
+          }
           cronEvery12Seconds {
             description = "A cron job that fires off every 10 seconds"
             expression = "*/12 * * ? * *"

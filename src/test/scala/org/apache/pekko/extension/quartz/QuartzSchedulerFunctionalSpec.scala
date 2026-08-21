@@ -396,10 +396,6 @@ class QuartzSchedulerFunctionalSpec(_system: ActorSystem)
    */
   "The Quartz Scheduling Extension with Dynamic mass methods" should {
 
-    "Suspend all jobs" ignore { /* TODO implement */ }
-
-    "Resume all jobs" ignore { /* TODO implement */ }
-
     "Delete all jobs" in {
       val receiver = _system.actorOf(Props(new ScheduleTestReceiver))
       val probe = TestProbe()
